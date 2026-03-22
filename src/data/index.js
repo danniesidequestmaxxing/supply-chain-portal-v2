@@ -2,12 +2,14 @@ import semiconductors from './semiconductors.js';
 import defense from './defense.js';
 import nuclear from './nuclear.js';
 import ev from './ev.js';
+import datacenter from './datacenter.js';
 
 export const INDUSTRIES = [
   semiconductors,
   defense,
   nuclear,
   ev,
+  datacenter,
   {
     id: 'renewable-energy',
     name: 'Renewable Energy',
