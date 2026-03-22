@@ -1,24 +1,13 @@
 import semiconductors from './semiconductors.js';
 import defense from './defense.js';
 import nuclear from './nuclear.js';
+import ev from './ev.js';
 
 export const INDUSTRIES = [
   semiconductors,
   defense,
   nuclear,
-  {
-    id: 'electric-vehicles',
-    name: 'Electric Vehicles',
-    icon: '🚗',
-    description: 'The global EV supply chain — from battery materials and cell manufacturing through drivetrains, power electronics, and charging infrastructure.',
-    comingSoon: true,
-    TIERS: [],
-    TIER_COLORS: {},
-    STREAM_COLORS: {},
-    VALUATION_GAPS: [],
-    SUPPLY_CHAIN_PAIRS: [],
-    GTC_THEMES: {},
-  },
+  ev,
   {
     id: 'renewable-energy',
     name: 'Renewable Energy',
