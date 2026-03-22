@@ -315,4 +315,24 @@ export default {
   VALUATION_GAPS,
   SUPPLY_CHAIN_PAIRS,
   GTC_THEMES,
+  UI: {
+    themeTitle: 'GTC 2026 theme exposure',
+    themeDesc: "Jensen Huang's GTC keynote emphasis shifts are a leading indicator for where capital flows next. Companies mapped to GTC 2025 themes returned +205% (Vertiv), +95% (TSMC), and +68% (Broadcom) over the following 12 months. Filter by theme to find the cheapest names in each 2026 signal.",
+    deadThemeWarning: 'DEAD THEME — Jensen stopped emphasizing this at GTC 2026. Companies with only dead-theme exposure may be value traps.',
+    streamDesc: {
+      upstream: 'Raw materials, substrates, and subcomponents that feed into equipment manufacturing. Highest supply fragility and longest qualification cycles.',
+      midstream: 'Equipment makers, foundries, packaging houses, and testing providers that transform materials into functional silicon. Capital-intensive with high barriers to entry.',
+      downstream: 'Finished chips, networking infrastructure, and power systems that go into data center racks. Closest to end-customer revenue cycles.',
+      demand: 'Hyperscalers and AI labs that deploy the capital. Their spending decisions cascade through every tier above.',
+    },
+    flowDesc: 'Capital flows downstream from hyperscalers, but supply constraints propagate upstream. The further upstream you go, the more concentrated and fragile the supply base becomes.',
+    flowArrows: ['Materials and subcomponents feed into equipment and fabs','Equipment, fabs, and packaging produce finished silicon','Chips, networking, and power go into hyperscaler racks'],
+    ratioDesc: 'These ratios compare the median forward P/E of upstream and midstream tiers against their downstream customers and end-demand hyperscalers. A ratio below 1.0x means the supplier tier trades at a discount to its customer tier. Ratios below 0.7x suggest the market is systematically underpricing the supplier relative to the demand it enables. This is where the asymmetry lives.',
+    ratios: [
+      {label:'Upstream / Downstream',num:'upstream',den:'downstream',desc:'Materials & subsystems vs memory, compute, networking, and power'},
+      {label:'Upstream / Demand',num:'upstream',den:'demand',desc:'Materials & subsystems vs hyperscalers and AI labs'},
+      {label:'Midstream / Downstream',num:'midstream',den:'downstream',desc:'Equipment, foundry, packaging, testing, and photonics vs finished products'},
+      {label:'Midstream / Demand',num:'midstream',den:'demand',desc:'Equipment and manufacturing vs hyperscalers and AI labs'},
+    ],
+  },
 };

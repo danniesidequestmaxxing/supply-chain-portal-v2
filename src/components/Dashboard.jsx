@@ -300,15 +300,15 @@ function Gaps({VALUATION_GAPS}) {
 }
 
 const STREAM_LABELS = {upstream:'UPSTREAM',midstream:'MIDSTREAM',downstream:'DOWNSTREAM',demand:'END DEMAND'};
-const STREAM_DESC = {
-  upstream:'Raw materials, substrates, and subcomponents that feed into equipment manufacturing. Highest supply fragility and longest qualification cycles.',
-  midstream:'Equipment makers, foundries, packaging houses, and testing providers that transform materials into functional silicon. Capital-intensive with high barriers to entry.',
-  downstream:'Finished chips, networking infrastructure, and power systems that go into data center racks. Closest to end-customer revenue cycles.',
-  demand:'Hyperscalers and AI labs that deploy the capital. Their spending decisions cascade through every tier above.',
+const STREAM_DESC_DEFAULT = {
+  upstream:'Raw materials and subcomponents that feed into manufacturing. Highest supply fragility and longest qualification cycles.',
+  midstream:'Manufacturers and service providers that transform materials into functional products. Capital-intensive with high barriers to entry.',
+  downstream:'Finished products and systems closest to end-customer revenue cycles.',
+  demand:'End customers that deploy capital. Their spending decisions cascade through every tier.',
 };
 const STREAM_ORDER = ['upstream','midstream','downstream','demand'];
 
-function SupplyChainTab({tiers, STREAM_COLORS, TIER_COLORS}) {
+function SupplyChainTab({tiers, STREAM_COLORS, TIER_COLORS, UI}) {
   const grouped = {};
   for (const s of STREAM_ORDER) grouped[s] = tiers.filter(t=>t.stream===s);
 
@@ -334,14 +334,13 @@ function SupplyChainTab({tiers, STREAM_COLORS, TIER_COLORS}) {
     <div className="chart-wrap">
       <div className="chart-title">Supply chain flow: upstream to end demand</div>
       <p style={{fontSize:11,color:'var(--t3)',marginBottom:16,lineHeight:1.6}}>
-        Capital flows downstream from hyperscalers, but supply constraints propagate upstream.
-        The further upstream you go, the more concentrated and fragile the supply base becomes.
+        {UI?.flowDesc || 'Capital flows downstream from end demand, but supply constraints propagate upstream. The further upstream you go, the more concentrated and fragile the supply base becomes.'}
       </p>
       <div className="flow-diagram">
         {STREAM_ORDER.map((stream,si)=><div key={stream}>
           <div className="flow-stream" style={{borderColor:STREAM_COLORS[stream]}}>
             <div className="flow-stream-label" style={{color:STREAM_COLORS[stream]}}>{STREAM_LABELS[stream]}</div>
-            <div style={{fontSize:10,color:'var(--t3)',marginBottom:8,lineHeight:1.5}}>{STREAM_DESC[stream]}</div>
+            <div style={{fontSize:10,color:'var(--t3)',marginBottom:8,lineHeight:1.5}}>{(UI?.streamDesc || STREAM_DESC_DEFAULT)[stream]}</div>
             <div className="flow-tiers">
               {grouped[stream].map(t=>{
                 const margin = tierMargins.find(m=>m.id===t.id);
@@ -361,7 +360,7 @@ function SupplyChainTab({tiers, STREAM_COLORS, TIER_COLORS}) {
           </div>
           {si < STREAM_ORDER.length-1 && <div className="flow-arrow">
             <div className="flow-arrow-line"/>
-            <div className="flow-arrow-label">{['Materials and subcomponents feed into equipment and fabs','Equipment, fabs, and packaging produce finished silicon','Chips, networking, and power go into hyperscaler racks'][si]}</div>
+            <div className="flow-arrow-label">{(UI?.flowArrows || ['Upstream feeds into midstream','Midstream produces finished products','Downstream delivers to end demand'])[si]}</div>
             <div className="flow-arrow-head">▼</div>
           </div>}
         </div>)}
@@ -408,61 +407,42 @@ function SupplyChainTab({tiers, STREAM_COLORS, TIER_COLORS}) {
       </p>
 
       <div style={{display:'flex',flexDirection:'column',gap:14}}>
-        <div style={{padding:'14px 16px',background:'rgba(74,222,128,0.06)',borderRadius:8,borderLeft:'3px solid #4ade80'}}>
-          <div className="mono" style={{fontSize:11,fontWeight:700,color:'#4ade80',marginBottom:6}}>HIGHEST CONVICTION: Upstream materials & foundries</div>
-          <div style={{fontSize:11,color:'var(--t3)',lineHeight:1.7}}>
-            <strong style={{color:'var(--t2)'}}>Foundry (35% EBITDA, 18x P/E)</strong> offers the best margin-to-multiple ratio in the entire supply chain.
-            TSMC and its peers generate semiconductor-grade margins but trade at multiples typically reserved for cyclical industrials.
-            Capacity is sold out through 2027 with limited new entrants. <strong style={{color:'var(--t2)'}}>Materials (17% EBITDA, 20x P/E)</strong> are
-            small-cap and illiquid but sit at the most fragile chokepoint: InP substrates have a two-company duopoly with
-            18-month qualification cycles, meaning supply cannot scale quickly even when demand surges.
-          </div>
-        </div>
+        {STREAM_ORDER.filter(s => grouped[s]?.length > 0).map(stream => {
+          const streamTiers = sorted.filter(t => t.stream === stream && t.medMargin != null);
+          if (!streamTiers.length) return null;
+          const avgMargin = Math.round(streamTiers.reduce((s,t)=>s+(t.medMargin||0),0)/streamTiers.length);
+          const avgPE = Math.round(streamTiers.reduce((s,t)=>s+(t.medPE||0),0)/streamTiers.filter(t=>t.medPE).length) || null;
+          const ratio = avgPE > 0 ? (avgMargin / avgPE).toFixed(2) : null;
+          const labels = {upstream:'UPSTREAM',midstream:'MIDSTREAM',downstream:'DOWNSTREAM',demand:'END DEMAND'};
+          const signals = {upstream:'HIGHEST CONVICTION',midstream:'GROWTH AT REASONABLE PRICE',downstream:'FAIRLY VALUED',demand:'THE CATALYST, NOT THE TRADE'};
+          const streamColor = STREAM_COLORS[stream];
 
-        <div style={{padding:'14px 16px',background:'rgba(96,165,250,0.06)',borderRadius:8,borderLeft:'3px solid #60a5fa'}}>
-          <div className="mono" style={{fontSize:11,fontWeight:700,color:'#60a5fa',marginBottom:6}}>GROWTH AT REASONABLE PRICE: Midstream equipment & photonics</div>
-          <div style={{fontSize:11,color:'var(--t3)',lineHeight:1.7}}>
-            <strong style={{color:'var(--t2)'}}>WFE OEMs (32% EBITDA, 32x P/E)</strong> are fairly valued for their margin quality but offer
-            strong FCF visibility because equipment orders are booked 12-18 months ahead. <strong style={{color:'var(--t2)'}}>Photonics (18% EBITDA, 30x P/E)</strong> trades
-            at a premium relative to current margins, but the market is pricing in explosive growth as AI data centers shift from
-            electrical to optical interconnects. The risk here is execution, not demand. <strong style={{color:'var(--t2)'}}>Testing (22% EBITDA, 26x P/E)</strong> is
-            the most defensive midstream play: consumables-driven revenue with recurring demand regardless of capex cycles.
-          </div>
-        </div>
-
-        <div style={{padding:'14px 16px',background:'rgba(251,191,36,0.06)',borderRadius:8,borderLeft:'3px solid #fbbf24'}}>
-          <div className="mono" style={{fontSize:11,fontWeight:700,color:'#fbbf24',marginBottom:6}}>FULLY VALUED BUT ESSENTIAL: Downstream compute & memory</div>
-          <div style={{fontSize:11,color:'var(--t3)',lineHeight:1.7}}>
-            <strong style={{color:'var(--t2)'}}>Compute (38% EBITDA, 34x P/E)</strong> commands the highest multiples for good reason: NVIDIA
-            and Broadcom are the direct beneficiaries of every hyperscaler dollar spent. However, at 34x forward earnings, most of
-            the near-term upside is priced in. <strong style={{color:'var(--t2)'}}>Memory (24% EBITDA, 17x P/E)</strong> looks optically cheap but is deeply
-            cyclical. The current HBM supercycle has pushed margins to peak levels that are unlikely to sustain through a
-            correction, so the low P/E reflects the market discounting mean reversion rather than offering genuine value.
-          </div>
-        </div>
-
-        <div style={{padding:'14px 16px',background:'rgba(251,146,60,0.06)',borderRadius:8,borderLeft:'3px solid #fb923c'}}>
-          <div className="mono" style={{fontSize:11,fontWeight:700,color:'#fb923c',marginBottom:6}}>THE CATALYST, NOT THE TRADE: End demand hyperscalers</div>
-          <div style={{fontSize:11,color:'var(--t3)',lineHeight:1.7}}>
-            <strong style={{color:'var(--t2)'}}>Demand (42% EBITDA, 28x P/E)</strong> generates the highest margins in the chain because
-            hyperscalers operate software-driven business models at massive scale. Their capex announcements move every upstream
-            ticker on this dashboard. They are essential context for the thesis but are not where the asymmetric upside lives.
-            The value is in what they buy, not in their own stock.
-          </div>
-        </div>
+          return <div key={stream} style={{padding:'14px 16px',background:`${streamColor}0F`,borderRadius:8,borderLeft:`3px solid ${streamColor}`}}>
+            <div className="mono" style={{fontSize:11,fontWeight:700,color:streamColor,marginBottom:6}}>{signals[stream]}: {labels[stream]}</div>
+            <div style={{fontSize:11,color:'var(--t3)',lineHeight:1.7}}>
+              {streamTiers.map((t,i) => (
+                <span key={t.id}>
+                  {i > 0 && ' '}
+                  <strong style={{color:'var(--t2)'}}>{t.label} ({t.medMargin}% EBITDA, {t.medPE ? t.medPE+'x P/E' : 'N/M P/E'})</strong>
+                  {ratio && i===0 && avgPE && ` — margin-to-multiple ratio of ${ratio}x. `}
+                  {i===0 && !ratio && '. '}
+                </span>
+              ))}
+            </div>
+          </div>;
+        })}
       </div>
 
       <div style={{marginTop:14,padding:'10px 14px',background:'#ffffff06',borderRadius:6,fontSize:10,color:'var(--t4)',lineHeight:1.6}}>
-        <strong style={{color:'var(--t3)'}}>Summary:</strong> The highest margin-to-multiple dislocation sits in foundries and upstream materials.
-        Midstream equipment offers the most predictable FCF streams. Compute and memory are consensus trades where the upside
-        is largely reflected in price. A barbell strategy combining upstream value with midstream FCF compounders provides the
-        best risk-adjusted exposure to the AI buildout without paying peak multiples.
+        <strong style={{color:'var(--t3)'}}>Summary:</strong> Focus on tiers where the margin-to-multiple ratio is highest — these represent
+        structural underpricing by the market. A barbell strategy combining upstream value with midstream FCF compounders
+        typically provides the best risk-adjusted exposure without paying peak multiples.
       </div>
     </div>
   </>;
 }
 
-function RelativeValueTab({tiers, STREAM_COLORS, SUPPLY_CHAIN_PAIRS, GTC_THEMES}) {
+function RelativeValueTab({tiers, STREAM_COLORS, SUPPLY_CHAIN_PAIRS, GTC_THEMES, UI}) {
   const [activeTheme, setActiveTheme] = useState(null)
 
   const coMap = {}
@@ -480,12 +460,13 @@ function RelativeValueTab({tiers, STREAM_COLORS, SUPPLY_CHAIN_PAIRS, GTC_THEMES}
     streamMedian[stream] = pes.length ? (pes.length%2 ? pes[m] : Math.round((pes[m-1]+pes[m])/2)) : null
   }
 
-  const streamRatios = [
-    {label:'Upstream / Downstream',num:'upstream',den:'downstream',desc:'Materials & subsystems vs memory, compute, networking, and power'},
-    {label:'Upstream / Demand',num:'upstream',den:'demand',desc:'Materials & subsystems vs hyperscalers and AI labs'},
-    {label:'Midstream / Downstream',num:'midstream',den:'downstream',desc:'Equipment, foundry, packaging, testing, and photonics vs finished products'},
-    {label:'Midstream / Demand',num:'midstream',den:'demand',desc:'Equipment and manufacturing vs hyperscalers and AI labs'},
-  ].map(r => ({...r, ratio: (streamMedian[r.num] && streamMedian[r.den]) ? streamMedian[r.num]/streamMedian[r.den] : null}))
+  const defaultRatios = [
+    {label:'Upstream / Downstream',num:'upstream',den:'downstream',desc:'Upstream suppliers vs downstream customers'},
+    {label:'Upstream / Demand',num:'upstream',den:'demand',desc:'Upstream suppliers vs end demand'},
+    {label:'Midstream / Downstream',num:'midstream',den:'downstream',desc:'Midstream manufacturers vs downstream customers'},
+    {label:'Midstream / Demand',num:'midstream',den:'demand',desc:'Midstream manufacturers vs end demand'},
+  ];
+  const streamRatios = (UI?.ratios || defaultRatios).map(r => ({...r, ratio: (streamMedian[r.num] && streamMedian[r.den]) ? streamMedian[r.num]/streamMedian[r.den] : null}))
 
   const pairs = SUPPLY_CHAIN_PAIRS.map(p => {
     const sup = coMap[p.supplier]
@@ -510,11 +491,9 @@ function RelativeValueTab({tiers, STREAM_COLORS, SUPPLY_CHAIN_PAIRS, GTC_THEMES}
   return <>
     {/* GTC 2026 Theme Filter */}
     <div className="chart-wrap">
-      <div className="chart-title">GTC 2026 theme exposure</div>
+      <div className="chart-title">{UI?.themeTitle || 'Investment theme exposure'}</div>
       <p style={{fontSize:11,color:'var(--t3)',marginBottom:10,lineHeight:1.7}}>
-        Jensen Huang's GTC keynote emphasis shifts are a leading indicator for where capital flows next. Companies mapped to GTC 2025 themes
-        returned +205% (Vertiv), +95% (TSMC), and +68% (Broadcom) over the following 12 months. Filter by theme to find the cheapest names
-        in each 2026 signal.
+        {UI?.themeDesc || 'Filter by investment theme to find the cheapest names exposed to each structural trend.'}
       </p>
       <div className="gtc-filter">
         <button className={`gtc-filter-btn ${!activeTheme?'active':''}`} onClick={()=>setActiveTheme(null)}>All</button>
@@ -530,7 +509,7 @@ function RelativeValueTab({tiers, STREAM_COLORS, SUPPLY_CHAIN_PAIRS, GTC_THEMES}
         <div style={{padding:10,borderRadius:6,background:'var(--bg)',border:`1px solid ${GTC_THEMES[activeTheme].dead?'var(--red)':'var(--border)'}`,marginBottom:8}}>
           {GTC_THEMES[activeTheme].dead && (
             <div style={{fontSize:10,fontWeight:700,color:'var(--red)',marginBottom:4}}>
-              DEAD THEME — Jensen stopped emphasizing this at GTC 2026. Companies with only dead-theme exposure may be value traps.
+              {UI?.deadThemeWarning || 'DEAD THEME — Investment priority has shifted away. Companies with only dead-theme exposure may be value traps.'}
             </div>
           )}
           <div style={{fontSize:11,color:'var(--t2)',lineHeight:1.6}}>{GTC_THEMES[activeTheme].desc}</div>
@@ -556,9 +535,7 @@ function RelativeValueTab({tiers, STREAM_COLORS, SUPPLY_CHAIN_PAIRS, GTC_THEMES}
     <div className="chart-wrap">
       <div className="chart-title">Supply chain valuation ratios</div>
       <p style={{fontSize:11,color:'var(--t3)',marginBottom:14,lineHeight:1.7}}>
-        These ratios compare the median forward P/E of upstream and midstream tiers against their downstream customers and end-demand hyperscalers.
-        A ratio below 1.0x means the supplier tier trades at a discount to its customer tier. Ratios below 0.7x suggest the market is systematically
-        underpricing the supplier relative to the demand it enables. This is where the asymmetry lives.
+        {UI?.ratioDesc || 'These ratios compare the median forward P/E of upstream and midstream tiers against their downstream customers and end demand. A ratio below 1.0x means the supplier tier trades at a discount to its customer tier. Ratios below 0.7x suggest the market is systematically underpricing the supplier relative to the demand it enables.'}
       </p>
       <div style={{display:'flex',flexDirection:'column',gap:10}}>
         {streamRatios.map(r => {
@@ -975,8 +952,8 @@ export default function Dashboard({ industry, liveData }) {
     {tab==='fcf' && <FCFChart tiers={tiers} STREAM_COLORS={STREAM_COLORS} TIER_COLORS={TIER_COLORS}/>}
     {tab==='growth' && <GrowthChart tiers={tiers} STREAM_COLORS={STREAM_COLORS} TIER_COLORS={TIER_COLORS}/>}
     {tab==='gaps' && <Gaps VALUATION_GAPS={VALUATION_GAPS}/>}
-    {tab==='relval' && <RelativeValueTab tiers={tiers} STREAM_COLORS={STREAM_COLORS} SUPPLY_CHAIN_PAIRS={SUPPLY_CHAIN_PAIRS} GTC_THEMES={GTC_THEMES}/>}
-    {tab==='chain' && <SupplyChainTab tiers={tiers} STREAM_COLORS={STREAM_COLORS} TIER_COLORS={TIER_COLORS}/>}
+    {tab==='relval' && <RelativeValueTab tiers={tiers} STREAM_COLORS={STREAM_COLORS} SUPPLY_CHAIN_PAIRS={SUPPLY_CHAIN_PAIRS} GTC_THEMES={GTC_THEMES} UI={industry.UI}/>}
+    {tab==='chain' && <SupplyChainTab tiers={tiers} STREAM_COLORS={STREAM_COLORS} TIER_COLORS={TIER_COLORS} UI={industry.UI}/>}
 
     <div className="method">
       <div className="method-title">Data sources & methodology</div>

@@ -292,4 +292,24 @@ export default {
   VALUATION_GAPS,
   SUPPLY_CHAIN_PAIRS,
   GTC_THEMES: DEFENSE_THEMES,
+  UI: {
+    themeTitle: 'Defense investment theme exposure',
+    themeDesc: 'Defense spending is shifting structurally toward precision munitions, autonomous systems, space, and cyber. Companies aligned with active procurement cycles benefit from multi-year program-of-record tailwinds, while those tied to legacy platforms face budget compression. Filter by theme to find the cheapest names in each spending wave.',
+    deadThemeWarning: 'DEAD THEME — Budget priority has shifted away from this area. Companies with only legacy exposure face procurement headwinds and potential program cancellations.',
+    streamDesc: {
+      upstream: 'Advanced materials, specialty alloys, composites, and defense subsystem components. Long qualification cycles and sole-source contracts create durable moats.',
+      midstream: 'Propulsion, munitions, space systems, shipbuilding, and cybersecurity providers that transform raw materials into mission-critical platforms and capabilities.',
+      downstream: 'Prime contractors and mission systems integrators that win government contracts and manage complex multi-decade programs across all warfighting domains.',
+      demand: 'Government defense budgets from the US DoD, NATO allies, Indo-Pacific partners, and Middle East buyers. Sovereign spending decisions cascade through every tier below.',
+    },
+    flowDesc: 'Defense budgets flow from governments through prime contractors to subsystem suppliers and materials providers. Supply constraints are most acute in specialty materials, munitions production capacity, and shipyard throughput.',
+    flowArrows: ['Materials and components feed into propulsion, munitions, and platforms','Engines, ordnance, and systems integrate into prime contractor programs','Prime contractors deliver finished platforms to government customers'],
+    ratioDesc: 'These ratios compare the median forward P/E of upstream and midstream defense suppliers against their downstream prime contractors and end-demand government budgets. A ratio below 1.0x means the supplier tier trades at a discount to its customer tier, suggesting the market underprices the upstream supply chain relative to the primes that depend on it.',
+    ratios: [
+      {label:'Upstream / Downstream',num:'upstream',den:'downstream',desc:'Materials & subsystems vs prime contractors and mission systems'},
+      {label:'Upstream / Demand',num:'upstream',den:'demand',desc:'Materials & subsystems vs government budget holders'},
+      {label:'Midstream / Downstream',num:'midstream',den:'downstream',desc:'Propulsion, munitions, space, naval, and cyber vs prime contractors'},
+      {label:'Midstream / Demand',num:'midstream',den:'demand',desc:'Platform manufacturers vs government budget holders'},
+    ],
+  },
 };
