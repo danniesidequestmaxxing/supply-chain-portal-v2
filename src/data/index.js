@@ -1,9 +1,11 @@
 import semiconductors from './semiconductors.js';
 import defense from './defense.js';
+import nuclear from './nuclear.js';
 
 export const INDUSTRIES = [
   semiconductors,
   defense,
+  nuclear,
   {
     id: 'electric-vehicles',
     name: 'Electric Vehicles',
